@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ini yang penting
+
 
 const TableTransaction = () => {
     const [transactions, setTransactions] = useState([]);
@@ -121,14 +124,48 @@ const TableTransaction = () => {
         setShowModal(true);
     };
 
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Daftar Transaksi", 14, 10);
+
+        const tableColumn = ["ID Transaksi", "ID Item", "Quantity", "Price", "Amount"];
+        const tableRows = [];
+
+        transactions.forEach((trx) => {
+            const trxData = [
+                trx.id_transaction,
+                trx.id_item,
+                trx.quantity,
+                `Rp ${Number(trx.price).toLocaleString("id-ID")}`,
+                `Rp ${Number(trx.amount).toLocaleString("id-ID")}`,
+            ];
+            tableRows.push(trxData);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 20,
+        });
+
+        doc.save("data-transaksi.pdf");
+    };
+
+
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg p-4">
-            <div className="mb-4">
+            <div className="mb-4 flex gap-2">
                 <button
                     onClick={openAddModal}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                     + Tambah Transaksi
+                </button>
+                <button
+                    onClick={handleDownloadPDF}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                    Unduh PDF
                 </button>
             </div>
 
